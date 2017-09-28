@@ -1,6 +1,10 @@
 integer SEAT_UPDATE = 35353;//we gonna do satmsg and notsatmsg
 integer MEMORY_USAGE = 34334;
 integer OPTIONS = -240;
+integer DO = 220;
+integer PLUGIN_COMMAND_REGISTER = 310;
+
+integer ADD_TIMER=-600;
 
 //generic message numbers
 integer ON_ENTER=-700; //triggers if someone enters a slot. Reported data: slotNumber and avatarUUID
@@ -48,6 +52,7 @@ list SlotsAvatar;
 list MsgSat;
 list MsgNotSat;
 
+list TimerList; //float trigger time based on llGetTime, user defined string, user defined key
 
 debug(list message){
 	llOwnerSay((((llGetScriptName() + "\n##########\n#>") + llDumpList2String(message,"\n#>")) + "\n##########"));
@@ -106,22 +111,33 @@ onInvalid() {
 
 sendUserDefinedMessage(key avatar, string msg) {
 	if(msg!="") {
-		msg=llDumpList2String(llParseStringKeepNulls(msg, ["%AVKEY%"], []), avatar);
-		list msgParts=llParseString2List(msg, ["§"], []);
-		integer index;
-		integer length=llGetListLength(msgParts);
-		for(; index<length; index++) {
-			string msgPart=llList2String(msgParts, index);
-			if(msgPart) {
-				list msgAtoms=llParseStringKeepNulls(msgPart, ["|"], []);
-				string idString=llList2String(msgAtoms, 2);
-				key id=(key)idString;
-				if(idString=="") {
-					id=avatar;
+		//detect (NOT)SATMSG or ON_(UN)SIT messages
+		//(NOT)SATMSG start with an integer while ON_(UN)SIT messages start with an uppercase string
+		string temp=llList2String(llParseStringKeepNulls(msg, ["|"], []), 0);
+		if(llToLower(temp) == temp) {
+			//(NOT)SATMSG
+			msg=llDumpList2String(llParseStringKeepNulls(msg, ["%AVKEY%"], []), avatar);
+			list msgParts=llParseString2List(msg, ["§"], []);
+			integer index;
+			integer length=llGetListLength(msgParts);
+			for(; index<length; index++) {
+				string msgPart=llList2String(msgParts, index);
+				if(msgPart) {
+					list msgAtoms=llParseStringKeepNulls(msgPart, ["|"], []);
+					string idString=llList2String(msgAtoms, 2);
+					key id=(key)idString;
+					if(idString=="") {
+						id=avatar;
+					}
+					sendMessage((integer)llList2String(msgAtoms, 0), llList2String(msgAtoms, 1), id);
 				}
-				sendMessage((integer)llList2String(msgAtoms, 0), llList2String(msgAtoms, 1), id);
 			}
 		}
+		else {
+			//ON_(UN)SIT message
+			llMessageLinked(LINK_SET, DO, msg, avatar);
+		}
+		
 	}
 }
 
@@ -132,13 +148,40 @@ sendMessage(integer num, string str, key id) {
 	}
 }
 
+checkTimer() {
+	llSetTimerEvent(0.0);
+	float timerTime;
+	float timeNow=llGetTime();
+	while(timerTime<=0.01 && llGetListLength(TimerList)) {
+		timerTime=llList2Float(TimerList, 0) - timeNow;
+		if(timerTime<=0.01) {
+			llMessageLinked(LINK_SET, DO, llList2String(TimerList, 1), llList2Key(TimerList, 2));
+			TimerList=llDeleteSubList(TimerList, 0, 2);
+		}
+	}
+	if(llGetListLength(TimerList)) {
+		llSetTimerEvent(timerTime);
+	}
+}
+
 default {
 	state_entry() {
+		llSleep(1.0);
 		llMessageLinked(LINK_SET, REQUEST_CHATCHANNEL, "", "");
+		llMessageLinked(LINK_SET, PLUGIN_COMMAND_REGISTER, llDumpList2String(["ON_TIMER", ADD_TIMER, 0, 1], "|"), "");
 	}
 	link_message(integer sender_num, integer num, string str, key id) {
 		if(num == SEND_CHATCHANNEL) {  //got ChatChannel from the core.
 			ChatChannel = (integer)str;
+		}
+		else if(num==ADD_TIMER) {
+			list parts=llParseStringKeepNulls(str, ["|"], []);
+			TimerList+=[llGetTime() + (float)llList2String(parts, 0), llDumpList2String(llDeleteSubList(parts, 0, 0), "|"), id];
+			if(llGetListLength(TimerList)>3) {
+				TimerList=llListSort(TimerList, 3, TRUE);
+			}
+			//check and set the timer
+			checkTimer();
 		}
 		else if(num==SEAT_UPDATE) {
 			//Leona:
@@ -292,5 +335,8 @@ default {
 	}
 	on_rez(integer params) {
 		llResetScript();
+	}
+	timer() {
+		checkTimer();
 	}
 }
