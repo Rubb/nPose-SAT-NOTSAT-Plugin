@@ -166,7 +166,7 @@ checkTimer() {
 
 default {
 	state_entry() {
-		llSleep(1.0);
+		llSleep(1.5);
 		llMessageLinked(LINK_SET, REQUEST_CHATCHANNEL, "", "");
 		llMessageLinked(LINK_SET, PLUGIN_COMMAND_REGISTER, llDumpList2String(["ON_TIMER", ADD_TIMER, 0, 1], "|"), "");
 	}
