@@ -120,7 +120,7 @@ sendUserDefinedMessage(key avatar, string msg) {
 			list msgParts=llParseString2List(msg, ["§"], []);
 			integer index;
 			integer length=llGetListLength(msgParts);
-			for(; index<length; index++) {
+			for(index=0; index<length; index++) {
 				string msgPart=llList2String(msgParts, index);
 				if(msgPart) {
 					list msgAtoms=llParseStringKeepNulls(msgPart, ["|"], []);
@@ -208,7 +208,7 @@ default {
 
 			integer index;
 			integer length=llGetListLength(slots);
-			for(; index<length; index+=SLOTS_STRIDE) {
+			for(index=0; index<length; index+=SLOTS_STRIDE) {
 				SlotsAvatar+=(key)llList2String(slots, index + SLOTS_OFFSET_AVATAR);
 				SlotsAnimationDetails+=llList2String(slots, index + SLOTS_OFFSET_ANIMATION_NAME);
 				SlotsAnimationDetails+=(vector)llList2String(slots, index + SLOTS_OFFSET_ANIMATION_POS);
@@ -318,7 +318,7 @@ default {
 			list optionsToSet = llParseStringKeepNulls(str, ["~","|"], []);
 			integer length = llGetListLength(optionsToSet);
 			integer index;
-			for(; index<length; ++index) {
+			for(index=0; index<length; ++index) {
 				list optionsItems = llParseString2List(llList2String(optionsToSet, index), ["="], []);
 				string optionItem = llToLower(llStringTrim(llList2String(optionsItems, 0), STRING_TRIM));
 				string optionString = llList2String(optionsItems, 1);
