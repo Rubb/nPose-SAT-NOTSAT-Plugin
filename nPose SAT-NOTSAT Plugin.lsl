@@ -4,7 +4,8 @@ integer OPTIONS = -240;
 integer DO = 220;
 integer PLUGIN_COMMAND_REGISTER = 310;
 
-integer ADD_TIMER=-600;
+integer TIMER_ADD=-600;
+integer TIMER_REMOVE=-601;
 
 //generic message numbers
 integer ON_ENTER=-700; //triggers if someone enters a slot. Reported data: slotNumber and avatarUUID
@@ -155,8 +156,8 @@ checkTimer() {
 	while(timerTime<=0.01 && llGetListLength(TimerList)) {
 		timerTime=llList2Float(TimerList, 0) - timeNow;
 		if(timerTime<=0.01) {
-			llMessageLinked(LINK_SET, DO, llList2String(TimerList, 1), llList2Key(TimerList, 2));
-			TimerList=llDeleteSubList(TimerList, 0, 2);
+			llMessageLinked(LINK_SET, DO, llList2String(TimerList, 2), llList2Key(TimerList, 3));
+			TimerList=llDeleteSubList(TimerList, 0, 3);
 		}
 	}
 	if(llGetListLength(TimerList)) {
@@ -168,17 +169,71 @@ default {
 	state_entry() {
 		llSleep(1.5);
 		llMessageLinked(LINK_SET, REQUEST_CHATCHANNEL, "", "");
-		llMessageLinked(LINK_SET, PLUGIN_COMMAND_REGISTER, llDumpList2String(["ON_TIMER", ADD_TIMER, 0, 1], "|"), "");
+		llMessageLinked(LINK_SET, PLUGIN_COMMAND_REGISTER, llDumpList2String(["TIMER", TIMER_ADD, 0, 1], "|"), "");
+		llMessageLinked(LINK_SET, PLUGIN_COMMAND_REGISTER, llDumpList2String(["TIMER_REMOVE", TIMER_REMOVE, 0, 0], "|"), "");
 	}
 	link_message(integer sender_num, integer num, string str, key id) {
 		if(num == SEND_CHATCHANNEL) {  //got ChatChannel from the core.
 			ChatChannel = (integer)str;
 		}
-		else if(num==ADD_TIMER) {
+		else if(num==TIMER_ADD) {
 			list parts=llParseStringKeepNulls(str, ["|"], []);
-			TimerList+=[llGetTime() + (float)llList2String(parts, 0), llDumpList2String(llDeleteSubList(parts, 0, 0), "|"), id];
-			if(llGetListLength(TimerList)>3) {
-				TimerList=llListSort(TimerList, 3, TRUE);
+			string name=llToLower(llStringTrim(llList2String(parts, 0), STRING_TRIM));
+			list times=llCSV2List(llList2String(parts, 1));
+			string command=llDumpList2String(llDeleteSubList(parts, 0, 1), "|");
+			while(llGetListLength(times)) {
+				string timeString=llList2String(times, 0);
+				float time=(float)timeString;
+				times=llDeleteSubList(times, 0, 0);
+				if(llToLower(llGetSubString(timeString, 0, 0))=="r") {
+					time=(float)llList2String(times, 0) + llFrand((float)llList2String(times, 1) - (float)llList2String(times, 0));
+					times=llDeleteSubList(times, 0, 1);
+				}
+				TimerList+=[
+					llGetTime() + time,
+					name,
+					command,
+					id
+				];
+			}
+			if(llGetListLength(TimerList)>4) {
+				TimerList=llListSort(TimerList, 4, TRUE);
+			}
+			//check and set the timer
+			checkTimer();
+		}
+		else if(num==TIMER_REMOVE) {
+			str=llToLower(llStringTrim(str, STRING_TRIM));
+			if (str=="" || str=="*") {
+				TimerList=[];
+			}
+			else {
+				list timerRemoveList=llCSV2List(str);
+				integer timerRemoveListLength=llGetListLength(timerRemoveList);
+				integer timerNamesIndex;
+				integer timerNamesLength=llGetListLength(TimerList);
+				while(timerNamesIndex<timerNamesLength) {
+					string timerName=llList2String(TimerList, timerNamesIndex+1);
+					integer timerRemoveListIndex;
+					integer match;
+					while(!match && timerRemoveListIndex<timerRemoveListLength) {
+						string timerRemoveName=llList2String(timerRemoveList, timerRemoveListIndex);
+						if(llGetSubString(timerRemoveName, -1, -1)=="*") {
+							match=!llSubStringIndex(timerName, llDeleteSubString(timerRemoveName, -1, -1));
+						}
+						else {
+							match=timerRemoveName==timerName;
+						}
+						timerRemoveListIndex++;
+					}
+					if(match) {
+						TimerList=llDeleteSubList(TimerList, timerNamesIndex, timerNamesIndex+3);
+						timerNamesLength-=4;
+					}
+					else {
+						timerNamesIndex+=4;
+					}
+				}
 			}
 			//check and set the timer
 			checkTimer();
