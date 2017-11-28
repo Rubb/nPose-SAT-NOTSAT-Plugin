@@ -8,11 +8,11 @@ integer TIMER_ADD=-600;
 integer TIMER_REMOVE=-601;
 
 //generic message numbers
-integer ON_ENTER=-700; //triggers if someone enters a slot. Reported data: slotNumber and avatarUUID
-integer ON_EXIT=-701; //triggers if someone leaves a slot. Reported data: slotNumber and avatarUUID
-integer ON_NEW=-702; //triggers if someone sits on the object. Reported data: slotNumber and avatarUUID
-integer ON_CHANGE=-703; //triggers if someone changed the slot. Reported data: oldSlotNumber, newSlotNumber and avatarUUID
-integer ON_LOST=-704; //triggers if someone unsits from the object. Reported data: slotNumber and avatarUUID
+integer ON_ENTER=-700; //triggers if someone enters a slot. Reported data: seatNumber and avatarUUID
+integer ON_EXIT=-701; //triggers if someone leaves a slot. Reported data: seatNumber and avatarUUID
+integer ON_NEW=-702; //triggers if someone sits on the object. Reported data: seatNumber and avatarUUID
+integer ON_CHANGE=-703; //triggers if someone changed the slot. Reported data: oldSeattNumber, newSeatNumber and avatarUUID
+integer ON_LOST=-704; //triggers if someone unsits from the object. Reported data: seatNumber and avatarUUID
 integer ON_EMPTY=-705; //triggers if the Slots list was not empty but is empty now.
 integer ON_NOT_EMPTY=-706; //triggers if the Slots list was empty but is not empty anymore.
 integer ON_FULL=-707; //triggers if the Slots list was not full but is full now.
