@@ -4,7 +4,7 @@ Requires:
 
 When it is desirable to have something happen when an Avatar enters/exits a given seat during the active pose set, this plugin is needed.  If it is not desirable to have this functionality in any pose sets then this plugin is not needed.  These instructions are relative to a seat and not a particular sitter.
 
-Some of the possible uses are listed below to offer an idea of how to use this plugin.  For a deeper explanation on how to implement these instructions go here: https://github.com/nPoseTeam/nPose-V3/wiki/NC-Contents#satmsg
+Some of the possible uses are listed below to offer an idea of how to use this plugin.  For a deeper explanation on how to implement these instructions go here: https://github.com/nPoseTeam/nPose-V3/wiki/NC-Contents#on_sit
 1. Send a message to a sitter in a particular seat.
 2. Turn on/off a nPose option.
 3. Create a new macro.
