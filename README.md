@@ -2,7 +2,7 @@
 Requires:
 * nPose V4    
 
-Click the 'Releases' tag above for prior release version which support prior versions of nPose.
+Click the [Releases](https://github.com/nPoseTeam/nPose-SAT-NOTSAT-Plugin/releases) tag above for prior release version which support prior versions of nPose.
 
 When it is desirable to have something happen when an Avatar enters/exits a given seat during the active pose set, this plugin is needed.  If it is not desirable to have this functionality in any pose sets then this plugin is not needed.  These instructions are relative to a seat and not a particular sitter.
 
